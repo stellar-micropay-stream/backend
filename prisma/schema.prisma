@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String   @id @default(uuid())
+  sender        String
+  receiver      String
+  ratePerSec    String
+  mode          String   // "onchain" | "channel"
+  status        String   @default("active") // "active" | "paused" | "closed"
+  startedAt     DateTime @default(now())
+  lastPaymentAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  payments PaymentRecord[]
+}
+
+model Channel {
+  id              String   @id @default(uuid())
+  contractId      String
+  sender          String
+  receiver        String
+  depositAmount   String
+  senderBalance   String
+  receiverBalance String
+  sequenceNumber  Int      @default(0)
+  senderSig       String   @default("")
+  receiverSig     String   @default("")
+  status          String   @default("open") // "open" | "closed"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model PaymentRecord {
+  id        String   @id @default(uuid())
+  sessionId String
+  sender    String
+  receiver  String
+  amount    String
+  txHash    String   @default("")
+  nonce     String   @unique
+  createdAt DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id])
+}
